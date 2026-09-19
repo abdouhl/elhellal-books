@@ -1,0 +1,97 @@
+---
+import "@new-ui/foundations";
+
+export interface Props {
+    pageTitle: string;
+    pageDescription: string;
+    canonicalUrl?: string;
+    ogImage?: string;
+}
+
+const { pageTitle, pageDescription, canonicalUrl, ogImage } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:type" content="website" />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+    <header class="site-header">
+        <a href="/" class="brand">
+            <span class="brand-name">ملخصات الهلال</span>
+            <span class="brand-tagline">أهم الأفكار من أفضل الكتب العربية، في دقائق</span>
+        </a>
+        <a class="back-link" href="https://elhellal.com/">elhellal.com ←</a>
+    </header>
+
+    <slot />
+
+    <footer class="site-footer">
+        <p>جزء من شبكة <a href="https://elhellal.com/">الهلال</a> — دليل المقالات والاقتباسات العربية.</p>
+    </footer>
+
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+        body {
+            margin: 0;
+            font-family: var(--body-copy, system-ui, sans-serif);
+            background: var(--background-primary, #fff);
+            color: var(--content-primary, #111);
+        }
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--spacing-04, 1rem);
+            padding: var(--spacing-05, 1.25rem) var(--spacing-06, 1.5rem);
+            border-bottom: 1px solid var(--border-primary, #e5e5e5);
+            flex-wrap: wrap;
+        }
+        .brand {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .brand-name {
+            font-family: "ROM-Bold", var(--system-ui, system-ui);
+            font-size: 1.25rem;
+        }
+        .brand-tagline {
+            font-size: 0.85rem;
+            color: var(--content-secondary, #666);
+        }
+        .back-link {
+            font-size: 0.85rem;
+            color: var(--content-secondary, #666);
+            text-decoration: none;
+        }
+        .back-link:hover {
+            color: var(--accent, #0a5);
+        }
+        .site-footer {
+            text-align: center;
+            padding: var(--spacing-08, 2rem) var(--spacing-05, 1.25rem);
+            color: var(--content-secondary, #666);
+            font-size: 0.85rem;
+        }
+        .site-footer a {
+            color: inherit;
+        }
+    </style>
+</body>
+</html>
