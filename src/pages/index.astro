@@ -2,12 +2,18 @@
 import Layout from "../layouts/Layout.astro";
 import books from "../data/books.json";
 
+const PAGE_SIZE = 20;
 const sorted = [...books].sort((a, b) => a.title.localeCompare(b.title, "ar"));
+const fmt = (n: number) => n.toLocaleString("ar-EG");
 
-// Broad category for filtering: "رواية تاريخية" and "رواية ديستوبية" both fall under "رواية".
-const categoryOf = (genre: string) => genre.split(/\s*\/\s*/)[0].startsWith("رواية") ? "رواية" : genre.split(/\s*\/\s*/)[0];
-const categories = [...new Set(sorted.map((b) => categoryOf(b.genre)))];
-const count = (c: string) => sorted.filter((b) => categoryOf(b.genre) === c).length;
+// A book can sit in several topics: "سيرة ذاتية / أدب رحلات" is both.
+// "رواية تاريخية" and "رواية ديستوبية" collapse into "رواية".
+const topicsOf = (genre: string) => [
+    ...new Set(genre.split(/\s*\/\s*/).map((g) => (g.startsWith("رواية") ? "رواية" : g))),
+];
+const topicCounts = new Map<string, number>();
+for (const b of sorted) for (const t of topicsOf(b.genre)) topicCounts.set(t, (topicCounts.get(t) ?? 0) + 1);
+const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
 ---
 
 <Layout
@@ -16,76 +22,85 @@ const count = (c: string) => sorted.filter((b) => categoryOf(b.genre) === c).len
     canonicalUrl="https://books.elhellal.com/"
 >
     <main class="page">
-        <section class="hero">
+        <header class="intro">
             <h1>مكتبة الملخصات</h1>
-            <p class="sub">
-                الأفكار الرئيسية في أشهر الكتب العربية، تقرؤها في دقائق.
-                <span class="total">{sorted.length} كتاباً حتى الآن — ونضيف المزيد كل أسبوع.</span>
-            </p>
+            <p>الأفكار الرئيسية في أشهر الكتب العربية، تقرؤها في دقائق.</p>
+        </header>
 
-            <div class="controls">
-                <label class="search">
-                    <span class="visually-hidden">ابحث عن كتاب أو مؤلف</span>
-                    <input id="q" type="search" placeholder="ابحث عن كتاب أو مؤلف…" autocomplete="off" />
-                </label>
-                <label class="sort">
-                    <span class="visually-hidden">الترتيب</span>
-                    <select id="sort">
-                        <option value="title">الترتيب: أبجدياً</option>
-                        <option value="year-desc">الأحدث نشراً</option>
-                        <option value="year-asc">الأقدم نشراً</option>
-                    </select>
-                </label>
-            </div>
+        <div class="layout">
+            <aside class="topics">
+                <details open id="topics">
+                    <summary>موضوعات الكتب</summary>
+                    <ul role="list">
+                        <li>
+                            <button class="topic" data-topic="" aria-pressed="true">
+                                <span class="name">كل الكتب</span>
+                                <span class="pill">{fmt(sorted.length)}</span>
+                            </button>
+                        </li>
+                        {topics.map(([t, n]) => (
+                            <li>
+                                <button class="topic" data-topic={t} aria-pressed="false">
+                                    <span class="name">{t}</span>
+                                    <span class="pill">{fmt(n)}</span>
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </details>
+            </aside>
 
-            <div class="chips" role="group" aria-label="التصنيف">
-                <button class="chip" data-cat="" aria-pressed="true">الكل <span>{sorted.length}</span></button>
-                {categories.map((c) => (
-                    <button class="chip" data-cat={c} aria-pressed="false">{c} <span>{count(c)}</span></button>
-                ))}
-            </div>
-        </section>
+            <section class="results">
+                <div class="toolbar">
+                    <nav id="pager" class="pager" aria-label="الصفحات"></nav>
+                    <p id="status" class="status" aria-live="polite"></p>
+                    <label class="search">
+                        <span class="visually-hidden">ابحث عن كتاب أو مؤلف</span>
+                        <input id="q" type="search" placeholder="ابحث عن كتاب أو مؤلف…" autocomplete="off" />
+                    </label>
+                </div>
 
-        <p id="status" class="status" aria-live="polite"></p>
+                <ul role="list" class="grid" id="grid">
+                    {sorted.map((b) => (
+                        <li
+                            data-title={b.title}
+                            data-author={b.author}
+                            data-topics={topicsOf(b.genre).join("|")}
+                        >
+                            <a href={`/${b.slug}/`} class="book" aria-label={`${b.title} — ${b.author}`}>
+                                <img src={b.cover} alt="" loading="lazy" />
+                                <span class="overlay">
+                                    <span class="overlay-title">{b.title}</span>
+                                    <span class="overlay-author">{b.author}</span>
+                                    <span class="cta">شاهد التفاصيل</span>
+                                </span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
 
-        <ul role="list" class="grid" id="grid">
-            {sorted.map((b) => (
-                <li
-                    data-title={b.title}
-                    data-author={b.author}
-                    data-cat={categoryOf(b.genre)}
-                    data-year={b.year}
-                >
-                    <a href={`/${b.slug}/`} class="card">
-                        <div class="cover">
-                            <img src={b.cover} alt={b.title} loading="lazy" />
-                            {b.award && <span class="badge">حائز على جائزة</span>}
-                        </div>
-                        <div class="card-body">
-                            <h2>{b.title}</h2>
-                            <p class="author">{b.author}</p>
-                            <p class="meta">{b.genre} · {b.year}</p>
-                        </div>
-                    </a>
-                </li>
-            ))}
-        </ul>
-
-        <p id="empty" class="empty" hidden>لا توجد نتائج مطابقة. جرّب كلمة أخرى أو اختر «الكل».</p>
+                <p id="empty" class="empty" hidden>لا توجد نتائج مطابقة. جرّب كلمة أخرى أو اختر «كل الكتب».</p>
+            </section>
+        </div>
     </main>
 
-    <script>
-        const grid = document.getElementById("grid") as HTMLUListElement;
-        const items = Array.from(grid.children) as HTMLLIElement[];
-        const q = document.getElementById("q") as HTMLInputElement;
-        const sort = document.getElementById("sort") as HTMLSelectElement;
-        const chips = Array.from(document.querySelectorAll<HTMLButtonElement>(".chip"));
-        const empty = document.getElementById("empty")!;
-        const status = document.getElementById("status")!;
-        let cat = "";
+    <script define:vars={{ PAGE_SIZE }}>
+        const grid = document.getElementById("grid");
+        const items = Array.from(grid.children);
+        const q = document.getElementById("q");
+        const topicBtns = Array.from(document.querySelectorAll(".topic"));
+        const empty = document.getElementById("empty");
+        const status = document.getElementById("status");
+        const pager = document.getElementById("pager");
+        const topicsBox = document.getElementById("topics");
+        const nf = new Intl.NumberFormat("ar-EG");
+        let topic = "";
+        let page = 1;
+
+        if (matchMedia("(max-width: 800px)").matches) topicsBox.open = false;
 
         // Drop tashkeel/tatweel and unify alef/yaa/taa-marbuta so searches match loosely.
-        const norm = (s: string) =>
+        const norm = (s) =>
             s
                 .replace(/[ً-ٟـ]/g, "")
                 .replace(/[إأآ]/g, "ا")
@@ -93,195 +108,297 @@ const count = (c: string) => sorted.filter((b) => categoryOf(b.genre) === c).len
                 .replace(/ة/g, "ه")
                 .toLowerCase();
 
-        function apply() {
+        function render() {
             const term = norm(q.value.trim());
-            const key = sort.value;
-            const ordered = [...items].sort((a, b) => {
-                if (key === "year-desc") return +b.dataset.year! - +a.dataset.year!;
-                if (key === "year-asc") return +a.dataset.year! - +b.dataset.year!;
-                return a.dataset.title!.localeCompare(b.dataset.title!, "ar");
+            const matches = items.filter((li) => {
+                const inTopic = !topic || li.dataset.topics.split("|").includes(topic);
+                const inSearch = !term || norm(li.dataset.title + " " + li.dataset.author).includes(term);
+                return inTopic && inSearch;
             });
-            let shown = 0;
-            for (const li of ordered) {
-                grid.appendChild(li);
-                const hay = norm(li.dataset.title + " " + li.dataset.author);
-                const ok = (!cat || li.dataset.cat === cat) && (!term || hay.includes(term));
-                li.hidden = !ok;
-                if (ok) shown++;
+            const pages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
+            page = Math.min(page, pages);
+            const start = (page - 1) * PAGE_SIZE;
+            const visible = new Set(matches.slice(start, start + PAGE_SIZE));
+            items.forEach((li) => (li.hidden = !visible.has(li)));
+
+            empty.hidden = matches.length > 0;
+            status.textContent = matches.length
+                ? `عرض من ${nf.format(start + 1)} - ${nf.format(start + visible.size)} من أصل ${nf.format(matches.length)} كتاب`
+                : "";
+
+            pager.replaceChildren();
+            if (pages > 1) {
+                for (let p = 1; p <= pages; p++) {
+                    const b = document.createElement("button");
+                    b.textContent = nf.format(p);
+                    b.setAttribute("aria-label", `صفحة ${nf.format(p)}`);
+                    if (p === page) b.setAttribute("aria-current", "page");
+                    b.addEventListener("click", () => {
+                        page = p;
+                        render();
+                        grid.scrollIntoView({ behavior: "smooth", block: "start" });
+                    });
+                    pager.appendChild(b);
+                }
             }
-            empty.hidden = shown > 0;
-            status.textContent = term || cat ? `${shown} نتيجة` : "";
         }
 
-        q.addEventListener("input", apply);
-        sort.addEventListener("change", apply);
-        chips.forEach((chip) =>
-            chip.addEventListener("click", () => {
-                cat = chip.dataset.cat!;
-                chips.forEach((c) => c.setAttribute("aria-pressed", String(c === chip)));
-                apply();
+        q.addEventListener("input", () => {
+            page = 1;
+            render();
+        });
+        topicBtns.forEach((btn) =>
+            btn.addEventListener("click", () => {
+                topic = btn.dataset.topic;
+                page = 1;
+                topicBtns.forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+                render();
             }),
         );
+        render();
     </script>
 
     <style>
         .page {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: var(--spacing-07, 2rem) var(--spacing-05, 1.25rem) var(--spacing-10, 3rem);
         }
-        .hero {
+        .intro {
             margin-bottom: var(--spacing-06, 1.5rem);
         }
         h1 {
             margin: 0 0 var(--spacing-02, 0.5rem);
             font-size: clamp(1.9rem, 4vw, 2.75rem);
         }
-        .sub {
+        .intro p {
+            margin: 0;
             color: var(--content-secondary, #666);
-            margin: 0 0 var(--spacing-06, 1.5rem);
-            max-width: 46ch;
-            line-height: 1.7;
         }
-        .total {
-            display: block;
-            font-size: 0.85rem;
+
+        /* Sidebar first in the DOM so RTL puts it on the right, like the reference. */
+        .layout {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: var(--spacing-06, 1.5rem);
+            align-items: start;
         }
-        .controls {
-            display: flex;
-            gap: var(--spacing-03, 0.75rem);
-            flex-wrap: wrap;
-            margin-bottom: var(--spacing-04, 1rem);
-        }
-        .search {
-            flex: 1 1 260px;
-        }
-        input[type="search"],
-        select {
-            width: 100%;
-            box-sizing: border-box;
-            font: inherit;
-            padding: 0.7rem 1rem;
-            color: var(--content-primary, inherit);
-            background: var(--background-secondary, #f6f6f6);
+        .topics {
+            position: sticky;
+            top: var(--spacing-04, 1rem);
             border: 1px solid var(--border, #e5e5e5);
             border-radius: var(--radius-lg, 8px);
+            overflow: hidden;
         }
-        select {
-            width: auto;
+        summary {
             cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-04, 1rem);
+            font-weight: 600;
+            background: var(--background-secondary, #f6f6f6);
         }
-        input[type="search"]:focus-visible,
-        select:focus-visible,
-        .chip:focus-visible,
-        .card:focus-visible {
-            outline: 2px solid var(--border-focus, currentColor);
-            outline-offset: 2px;
+        summary::-webkit-details-marker {
+            display: none;
         }
-        .chips {
+        summary::after {
+            content: "";
+            width: 0.5rem;
+            height: 0.5rem;
+            border: solid currentColor;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            transition: transform 0.15s ease;
+        }
+        details[open] summary::after {
+            transform: rotate(-135deg);
+        }
+        .topics ul {
+            list-style: none;
+            margin: 0;
+            padding: var(--spacing-02, 0.5rem);
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .topic {
+            font: inherit;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--spacing-03, 0.75rem);
+            padding: 0.55rem var(--spacing-03, 0.75rem);
+            color: var(--content-primary, inherit);
+            background: transparent;
+            border: 0;
+            border-radius: var(--radius-md, 6px);
+            cursor: pointer;
+            text-align: start;
+        }
+        .topic:hover {
+            background: var(--background-hover, #f2f2f2);
+        }
+        .topic[aria-pressed="true"] {
+            color: var(--link, #0a5);
+            font-weight: 600;
+        }
+        .pill {
+            min-width: 2.75rem;
+            text-align: center;
+            padding: 0.1rem 0.6rem;
+            font-size: 0.85rem;
+            border: 1px solid var(--border, #ddd);
+            border-radius: 999px;
+            color: var(--content-primary, inherit);
+        }
+        .topic[aria-pressed="true"] .pill {
+            border-color: currentColor;
+            color: inherit;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--spacing-03, 0.75rem) var(--spacing-05, 1.25rem);
+            margin-bottom: var(--spacing-04, 1rem);
+        }
+        .status {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--content-secondary, #666);
+            margin-inline-end: auto;
+        }
+        .pager {
             display: flex;
             gap: var(--spacing-02, 0.5rem);
             flex-wrap: wrap;
         }
-        .chip {
+        .pager:empty {
+            display: none;
+        }
+        .pager button {
             font: inherit;
-            font-size: 0.9rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
             cursor: pointer;
-            padding: 0.4rem 0.9rem;
-            color: var(--content-primary, inherit);
+            color: var(--link, #0a5);
             background: transparent;
-            border: 1px solid var(--border, #ddd);
-            border-radius: 999px;
-            transition: background 0.15s ease;
+            border: 1px solid currentColor;
         }
-        .chip span {
-            color: var(--content-secondary, #666);
-            font-size: 0.8em;
-            margin-inline-start: 0.25rem;
-        }
-        .chip:hover {
-            background: var(--background-hover, #f2f2f2);
-        }
-        .chip[aria-pressed="true"] {
-            background: var(--background-high-contrast, #111);
+        .pager button[aria-current="page"] {
+            background: var(--link, #0a5);
+            border-color: var(--link, #0a5);
             color: var(--content-on-color, #fff);
-            border-color: transparent;
         }
-        .chip[aria-pressed="true"] span {
-            color: inherit;
-            opacity: 0.75;
+        .search {
+            flex: 0 1 260px;
         }
-        .status {
-            min-height: 1.2em;
-            margin: 0 0 var(--spacing-03, 0.75rem);
-            font-size: 0.85rem;
-            color: var(--content-secondary, #666);
+        input[type="search"] {
+            width: 100%;
+            box-sizing: border-box;
+            font: inherit;
+            padding: 0.55rem 1rem;
+            color: var(--content-primary, inherit);
+            background: var(--background-secondary, #f6f6f6);
+            border: 1px solid var(--border, #e5e5e5);
+            border-radius: 999px;
         }
+        input[type="search"]:focus-visible,
+        .topic:focus-visible,
+        .pager button:focus-visible,
+        summary:focus-visible,
+        .book:focus-visible {
+            outline: 2px solid var(--border-focus, currentColor);
+            outline-offset: 2px;
+        }
+
         .grid {
             list-style: none;
             margin: 0;
             padding: 0;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-            gap: var(--spacing-05, 1.25rem);
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: var(--spacing-04, 1rem);
         }
         .grid li[hidden] {
             display: none;
         }
-        .card {
-            display: block;
-            text-decoration: none;
-            color: inherit;
-        }
-        .cover {
+        .book {
             position: relative;
-            border-radius: var(--radius-md, 6px);
+            display: block;
             overflow: hidden;
+            border: 1px solid var(--border, #e5e5e5);
+            border-radius: var(--radius-sm, 4px);
             background: var(--background-secondary, #f2f2f2);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-            transition: box-shadow 0.15s ease, transform 0.15s ease;
         }
-        .card:hover .cover {
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-            transform: translateY(-3px);
-        }
-        .cover img {
+        .book img {
+            display: block;
             width: 100%;
             aspect-ratio: 2 / 3;
             object-fit: cover;
-            display: block;
+            transition: transform 0.25s ease;
         }
-        .badge {
+        .overlay {
             position: absolute;
-            inset-block-start: 8px;
-            inset-inline-start: 8px;
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 999px;
-            background: var(--background-high-contrast, #111);
-            color: var(--content-on-color, #fff);
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            padding: var(--spacing-04, 1rem);
+            text-align: center;
+            color: #fff;
+            background: rgba(10, 20, 40, 0.75);
+            opacity: 0;
+            transition: opacity 0.2s ease;
         }
-        .card-body {
-            padding-top: var(--spacing-03, 0.75rem);
+        .book:hover .overlay,
+        .book:focus-visible .overlay {
+            opacity: 1;
         }
-        .card-body h2 {
-            margin: 0 0 2px;
-            font-size: 1rem;
+        .book:hover img {
+            transform: scale(1.04);
+        }
+        .overlay-title {
+            font-size: 1.1rem;
+            font-weight: 700;
             line-height: 1.4;
         }
-        .card:hover h2 {
-            text-decoration: underline;
-        }
-        .author {
-            margin: 0;
+        .overlay-author {
             font-size: 0.85rem;
-            color: var(--content-secondary, #666);
+            opacity: 0.85;
         }
-        .meta {
-            margin: 4px 0 0;
-            font-size: 0.75rem;
-            color: var(--content-secondary, #666);
+        .cta {
+            margin-top: var(--spacing-03, 0.75rem);
+            padding: 0.55rem 1.4rem;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            background: var(--link, #0a5);
+            color: var(--content-on-color, #fff);
         }
+        /* No hover on touch: show the title as a bottom strip instead. */
+        @media (hover: none) {
+            .overlay {
+                inset: auto 0 0 0;
+                opacity: 1;
+                padding: var(--spacing-03, 0.75rem);
+                background: linear-gradient(transparent, rgba(10, 20, 40, 0.9));
+                justify-content: flex-end;
+            }
+            .overlay-title {
+                font-size: 0.95rem;
+            }
+            .overlay-author,
+            .cta {
+                display: none;
+            }
+        }
+
         .empty {
             text-align: center;
             color: var(--content-secondary, #666);
@@ -294,6 +411,18 @@ const count = (c: string) => sorted.filter((b) => categoryOf(b.genre) === c).len
             overflow: hidden;
             clip: rect(0 0 0 0);
             white-space: nowrap;
+        }
+
+        @media (max-width: 800px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+            .topics {
+                position: static;
+            }
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
         }
     </style>
 </Layout>
