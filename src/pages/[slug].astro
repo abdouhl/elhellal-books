@@ -3,10 +3,19 @@ import Layout from "../layouts/Layout.astro";
 import books from "../data/books.json";
 
 export function getStaticPaths() {
-    return books.map((b) => ({ params: { slug: b.slug }, props: { book: b } }));
+    // Long-form summaries live in src/content/summaries/<slug>.md; books without one fall back to the short entry.
+    const longForm = import.meta.glob("../content/summaries/*.md", { eager: true }) as Record<string, any>;
+    return books.map((b) => {
+        const md = longForm[`../content/summaries/${b.slug}.md`];
+        const words = md ? md.rawContent().split(/\s+/).filter(Boolean).length : 0;
+        return {
+            params: { slug: b.slug },
+            props: { book: b, Content: md?.Content ?? null, minutes: Math.max(1, Math.round(words / 200)) },
+        };
+    });
 }
 
-const { book } = Astro.props;
+const { book, Content, minutes } = Astro.props;
 
 const amazonSearch = `https://www.amazon.sa/s?k=${encodeURIComponent(book.title + " " + book.author)}`;
 const goodreadsSearch = `https://www.goodreads.com/search?q=${encodeURIComponent(book.title + " " + book.author)}`;
@@ -42,10 +51,20 @@ const quotesUrl = book.quotesSlug ? `https://elhellal.com/quotes/book/${encodeUR
                 <p class="author">بقلم {book.author}</p>
                 {book.award && <p class="award">🏆 {book.award}</p>}
 
-                <section>
-                    <h2>نبذة عن الكتاب</h2>
-                    <p>{book.summary}</p>
-                </section>
+                {Content ? (
+                    <>
+                        <p class="lead">{book.summary}</p>
+                        <p class="reading-time">وقت القراءة: نحو {minutes.toLocaleString("ar-EG")} دقائق</p>
+                        <section class="prose">
+                            <Content />
+                        </section>
+                    </>
+                ) : (
+                    <section>
+                        <h2>نبذة عن الكتاب</h2>
+                        <p>{book.summary}</p>
+                    </section>
+                )}
 
                 <section>
                     <h2>الأفكار الرئيسية</h2>
@@ -101,7 +120,7 @@ const quotesUrl = book.quotesSlug ? `https://elhellal.com/quotes/book/${encodeUR
         .links a {
             text-align: center;
             padding: 10px 14px;
-            border: 1px solid var(--border-primary, #e5e5e5);
+            border: 1px solid var(--border, #e5e5e5);
             border-radius: 6px;
             text-decoration: none;
             color: var(--content-primary, #111);
@@ -144,6 +163,32 @@ const quotesUrl = book.quotesSlug ? `https://elhellal.com/quotes/book/${encodeUR
         }
         section li {
             margin-bottom: 6px;
+        }
+        .lead {
+            margin: var(--spacing-05, 1.25rem) 0 var(--spacing-02, 0.5rem);
+            font-size: 1.15rem;
+            line-height: 1.9;
+            color: var(--content-secondary, #555);
+        }
+        .reading-time {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--content-secondary, #666);
+        }
+        .prose :global(h2) {
+            margin: var(--spacing-07, 2rem) 0 var(--spacing-03, 0.75rem);
+            font-size: 1.35rem;
+        }
+        .prose :global(p) {
+            margin: 0 0 var(--spacing-04, 1rem);
+            font-size: 1.05rem;
+            line-height: 2;
+        }
+        .prose :global(blockquote) {
+            margin: var(--spacing-05, 1.25rem) 0;
+            padding: 0 var(--spacing-04, 1rem);
+            border-inline-start: 3px solid var(--link, #0a5);
+            color: var(--content-secondary, #555);
         }
     </style>
 </Layout>
