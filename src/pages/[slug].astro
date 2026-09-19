@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import books from "../data/books.json";
+import AdUnit from "../components/AdUnit.astro";
 
 export function getStaticPaths() {
     // Long-form summaries live in src/content/summaries/<slug>.md; books without one fall back to the short entry.
@@ -58,6 +59,7 @@ const quotesUrl = book.quotesSlug ? `https://elhellal.com/quotes/book/${encodeUR
                         <section class="prose">
                             <Content />
                         </section>
+                        <AdUnit slot="8525183818" format="fluid" layout="in-article" />
                     </>
                 ) : (
                     <section>
@@ -77,6 +79,8 @@ const quotesUrl = book.quotesSlug ? `https://elhellal.com/quotes/book/${encodeUR
                     <h2>لمن هذا الكتاب</h2>
                     <p>{book.whoShouldRead}</p>
                 </section>
+
+                <AdUnit slot="2951250905" minHeight={250} />
             </div>
         </article>
     </main>
@@ -85,74 +89,101 @@ const quotesUrl = book.quotesSlug ? `https://elhellal.com/quotes/book/${encodeUR
         .page {
             max-width: 1000px;
             margin: 0 auto;
-            padding: var(--spacing-06, 1.5rem) var(--spacing-05, 1.25rem) var(--spacing-10, 3rem);
+            padding: var(--spacing-07) var(--spacing-09) var(--spacing-10);
         }
         .breadcrumb {
             display: flex;
             gap: 6px;
-            font-size: 0.8rem;
-            color: var(--content-secondary, #666);
-            margin-bottom: var(--spacing-06, 1.5rem);
+            font-family: var(--monospace);
+            font-size: var(--desktop-caption);
+            line-height: var(--lh-desktop-caption);
+            color: var(--content-secondary);
+            margin-bottom: var(--spacing-06);
         }
         .breadcrumb a {
             color: inherit;
             text-decoration: none;
         }
+        .breadcrumb a:hover {
+            color: var(--accent);
+        }
         .book {
             display: grid;
             grid-template-columns: 220px 1fr;
-            gap: var(--spacing-07, 2rem);
+            gap: var(--spacing-07);
         }
         @media (max-width: 640px) {
             .book { grid-template-columns: 1fr; }
+            .page { padding: var(--spacing-06) var(--spacing-05) var(--spacing-09); }
         }
         .cover {
             width: 100%;
-            border-radius: 8px;
+            border-radius: 12px;
             display: block;
+            background-color: #111111;
+            box-shadow:
+                0px 0px 0px 0.5px rgba(255, 255, 255, 0.08),
+                0px 4px 16px rgba(0, 0, 0, 0.4);
         }
         .links {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            margin-top: var(--spacing-04, 1rem);
+            gap: var(--spacing-02);
+            margin-top: var(--spacing-05);
         }
         .links a {
             text-align: center;
-            padding: 10px 14px;
-            border: 1px solid var(--border, #e5e5e5);
-            border-radius: 6px;
+            padding: var(--spacing-02) var(--spacing-05);
+            border: 0.5px solid var(--border-muted);
+            background-color: var(--background);
             text-decoration: none;
-            color: var(--content-primary, #111);
-            font-size: 0.85rem;
+            color: var(--content-secondary);
+            font-size: var(--desktop-body-sm);
+            line-height: var(--lh-desktop-body-sm);
+            transition: transform 0.2s ease, color 0.15s ease;
         }
         .links a:hover {
-            border-color: var(--accent, #0a5);
-            color: var(--accent, #0a5);
+            color: var(--accent);
+        }
+        .links a:active {
+            transform: scale(0.97);
         }
         .genre {
-            margin: 0 0 4px;
-            font-size: 0.8rem;
-            color: var(--accent, #0a5);
+            margin: 0 0 var(--spacing-02);
+            font-family: var(--monospace);
+            font-size: var(--desktop-caption);
+            color: var(--accent);
         }
         h1 {
-            margin: 0 0 4px;
+            margin: 0 0 var(--spacing-01);
             font-size: clamp(1.5rem, 3vw, 2.25rem);
+            color: var(--content-primary);
         }
         .author {
-            margin: 0 0 8px;
-            color: var(--content-secondary, #666);
+            margin: 0 0 var(--spacing-02);
+            color: var(--content-secondary);
         }
         .award {
-            font-size: 0.85rem;
-            margin: 0 0 var(--spacing-04, 1rem);
+            display: inline-block;
+            font-family: var(--monospace);
+            font-size: 11px;
+            line-height: 1.5;
+            margin: 0 0 var(--spacing-04);
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(255, 80, 0, 0.2);
+            color: #ff7a40;
+            border: 0.5px solid rgba(255, 80, 0, 0.3);
         }
         section {
-            margin-top: var(--spacing-06, 1.5rem);
+            margin-top: var(--spacing-06);
         }
         section h2 {
             font-size: 1.1rem;
-            margin: 0 0 8px;
+            margin: 0 0 var(--spacing-02);
+            padding-bottom: var(--spacing-02);
+            border-bottom: 0.5px solid var(--border-muted);
+            color: var(--content-primary);
         }
         section p, section ul {
             line-height: 1.8;
@@ -164,31 +195,38 @@ const quotesUrl = book.quotesSlug ? `https://elhellal.com/quotes/book/${encodeUR
         section li {
             margin-bottom: 6px;
         }
+        section li::marker {
+            color: var(--accent);
+        }
         .lead {
-            margin: var(--spacing-05, 1.25rem) 0 var(--spacing-02, 0.5rem);
+            margin: var(--spacing-05) 0 var(--spacing-02);
             font-size: 1.15rem;
             line-height: 1.9;
-            color: var(--content-secondary, #555);
+            color: var(--content-secondary);
         }
         .reading-time {
             margin: 0;
-            font-size: 0.8rem;
-            color: var(--content-secondary, #666);
+            font-family: var(--monospace);
+            font-size: var(--desktop-caption);
+            color: var(--content-secondary-alt);
         }
         .prose :global(h2) {
-            margin: var(--spacing-07, 2rem) 0 var(--spacing-03, 0.75rem);
+            margin: var(--spacing-07) 0 var(--spacing-03);
             font-size: 1.35rem;
         }
         .prose :global(p) {
-            margin: 0 0 var(--spacing-04, 1rem);
+            margin: 0 0 var(--spacing-04);
             font-size: 1.05rem;
             line-height: 2;
         }
         .prose :global(blockquote) {
-            margin: var(--spacing-05, 1.25rem) 0;
-            padding: 0 var(--spacing-04, 1rem);
-            border-inline-start: 3px solid var(--link, #0a5);
-            color: var(--content-secondary, #555);
+            margin: var(--spacing-05) 0;
+            padding: 0 var(--spacing-04);
+            border-inline-start: 2px solid var(--accent);
+            color: var(--content-secondary);
+        }
+        .prose :global(a) {
+            color: var(--accent);
         }
     </style>
 </Layout>

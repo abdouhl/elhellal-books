@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import books from "../data/books.json";
+import AdUnit from "../components/AdUnit.astro";
 
 const PAGE_SIZE = 20;
 const sorted = [...books].sort((a, b) => a.title.localeCompare(b.title, "ar"));
@@ -80,6 +81,7 @@ const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
                 </ul>
 
                 <p id="empty" class="empty" hidden>لا توجد نتائج مطابقة. جرّب كلمة أخرى أو اختر «كل الكتب».</p>
+                <AdUnit slot="2951250905" />
             </section>
         </div>
     </main>
@@ -160,34 +162,38 @@ const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
 
     <style>
         .page {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: var(--spacing-07, 2rem) var(--spacing-05, 1.25rem) var(--spacing-10, 3rem);
+            padding: var(--spacing-08) var(--spacing-09) var(--spacing-10);
         }
         .intro {
-            margin-bottom: var(--spacing-06, 1.5rem);
+            margin-bottom: var(--spacing-07);
         }
         h1 {
-            margin: 0 0 var(--spacing-02, 0.5rem);
-            font-size: clamp(1.9rem, 4vw, 2.75rem);
+            margin: 0 0 var(--spacing-02);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            color: var(--content-primary);
         }
         .intro p {
             margin: 0;
-            color: var(--content-secondary, #666);
+            font-family: var(--monospace);
+            font-size: var(--desktop-caption);
+            line-height: var(--lh-desktop-caption);
+            color: var(--content-secondary);
         }
 
-        /* Sidebar first in the DOM so RTL puts it on the right, like the reference. */
+        /* Sidebar first in the DOM so RTL puts it on the right. */
         .layout {
             display: grid;
-            grid-template-columns: 260px minmax(0, 1fr);
-            gap: var(--spacing-06, 1.5rem);
+            grid-template-columns: 240px minmax(0, 1fr);
+            gap: var(--spacing-06);
             align-items: start;
         }
         .topics {
             position: sticky;
-            top: var(--spacing-04, 1rem);
-            border: 1px solid var(--border, #e5e5e5);
-            border-radius: var(--radius-lg, 8px);
+            top: var(--spacing-04);
+            border: 0.5px solid var(--border-muted);
+            background: var(--background);
             overflow: hidden;
         }
         summary {
@@ -196,19 +202,24 @@ const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: var(--spacing-04, 1rem);
-            font-weight: 600;
-            background: var(--background-secondary, #f6f6f6);
+            padding: var(--spacing-04) var(--spacing-05);
+            font-family: "ROM-Bold", var(--system-ui);
+            color: var(--content-primary);
+            background: var(--background-secondary);
+            border-bottom: 0.5px solid var(--border-muted);
+        }
+        details:not([open]) summary {
+            border-bottom: 0;
         }
         summary::-webkit-details-marker {
             display: none;
         }
         summary::after {
             content: "";
-            width: 0.5rem;
-            height: 0.5rem;
+            width: 0.4rem;
+            height: 0.4rem;
             border: solid currentColor;
-            border-width: 0 2px 2px 0;
+            border-width: 0 1.5px 1.5px 0;
             transform: rotate(45deg);
             transition: transform 0.15s ease;
         }
@@ -218,43 +229,48 @@ const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
         .topics ul {
             list-style: none;
             margin: 0;
-            padding: var(--spacing-02, 0.5rem);
+            padding: 0;
             max-height: 70vh;
             overflow-y: auto;
         }
         .topic {
             font: inherit;
+            font-size: var(--desktop-body-sm);
+            line-height: var(--lh-desktop-body-sm);
             width: 100%;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: var(--spacing-03, 0.75rem);
-            padding: 0.55rem var(--spacing-03, 0.75rem);
-            color: var(--content-primary, inherit);
+            gap: var(--spacing-03);
+            padding: var(--spacing-03) var(--spacing-05);
+            color: var(--content-secondary);
             background: transparent;
             border: 0;
-            border-radius: var(--radius-md, 6px);
+            border-bottom: 0.5px solid var(--border-muted);
             cursor: pointer;
             text-align: start;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+        .topics li:last-child .topic {
+            border-bottom: 0;
         }
         .topic:hover {
-            background: var(--background-hover, #f2f2f2);
+            color: var(--content-primary);
+            background: var(--background-secondary);
         }
         .topic[aria-pressed="true"] {
-            color: var(--link, #0a5);
-            font-weight: 600;
+            color: var(--accent);
+            font-family: "ROM-Bold", var(--system-ui);
         }
         .pill {
-            min-width: 2.75rem;
+            min-width: var(--spacing-07);
             text-align: center;
-            padding: 0.1rem 0.6rem;
-            font-size: 0.85rem;
-            border: 1px solid var(--border, #ddd);
-            border-radius: 999px;
-            color: var(--content-primary, inherit);
+            font-family: var(--monospace);
+            font-size: var(--desktop-caption);
+            color: var(--content-secondary-alt);
         }
+        .topic:hover .pill,
         .topic[aria-pressed="true"] .pill {
-            border-color: currentColor;
             color: inherit;
         }
 
@@ -262,57 +278,74 @@ const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: var(--spacing-03, 0.75rem) var(--spacing-05, 1.25rem);
-            margin-bottom: var(--spacing-04, 1rem);
+            gap: var(--spacing-03) var(--spacing-05);
+            margin-bottom: var(--spacing-05);
         }
         .status {
             margin: 0;
-            font-size: 0.9rem;
-            color: var(--content-secondary, #666);
+            font-family: var(--monospace);
+            font-size: var(--desktop-caption);
+            color: var(--content-secondary);
             margin-inline-end: auto;
         }
         .pager {
             display: flex;
-            gap: var(--spacing-02, 0.5rem);
+            gap: var(--spacing-02);
             flex-wrap: wrap;
         }
         .pager:empty {
             display: none;
         }
         .pager button {
-            font: inherit;
-            width: 2.5rem;
-            height: 2.5rem;
-            border-radius: 50%;
+            font-family: var(--monospace);
+            font-size: var(--desktop-caption);
+            min-width: var(--spacing-08);
+            height: var(--spacing-08);
             cursor: pointer;
-            color: var(--link, #0a5);
-            background: transparent;
-            border: 1px solid currentColor;
+            color: var(--content-secondary);
+            background: var(--background);
+            border: 0.5px solid var(--border-muted);
+            transition: transform 0.2s ease, color 0.15s ease;
+        }
+        .pager button:hover {
+            color: var(--accent);
+        }
+        .pager button:active {
+            transform: scale(0.97);
         }
         .pager button[aria-current="page"] {
-            background: var(--link, #0a5);
-            border-color: var(--link, #0a5);
-            color: var(--content-on-color, #fff);
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #111;
+            font-weight: 700;
         }
         .search {
-            flex: 0 1 260px;
+            flex: 0 1 18rem;
         }
         input[type="search"] {
             width: 100%;
             box-sizing: border-box;
             font: inherit;
-            padding: 0.55rem 1rem;
-            color: var(--content-primary, inherit);
-            background: var(--background-secondary, #f6f6f6);
-            border: 1px solid var(--border, #e5e5e5);
-            border-radius: 999px;
+            font-size: var(--desktop-body-sm);
+            line-height: var(--lh-desktop-body-sm);
+            padding: var(--spacing-03) var(--spacing-04);
+            color: var(--content-primary);
+            background: var(--background);
+            border: 0.5px solid var(--border-muted);
+            border-radius: 0;
+            outline: none;
         }
-        input[type="search"]:focus-visible,
+        input[type="search"]::placeholder {
+            color: var(--content-placeholder);
+        }
+        input[type="search"]:focus {
+            border-color: var(--border);
+        }
         .topic:focus-visible,
         .pager button:focus-visible,
         summary:focus-visible,
         .book:focus-visible {
-            outline: 2px solid var(--border-focus, currentColor);
+            outline: 1px solid var(--button-primary);
             outline-offset: 2px;
         }
 
@@ -321,26 +354,37 @@ const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
             margin: 0;
             padding: 0;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-            gap: var(--spacing-04, 1rem);
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: var(--spacing-05);
         }
         .grid li[hidden] {
             display: none;
         }
+        /* Same card shell as elhellal's article cards: #111, 12px radius, hairline ring. */
         .book {
             position: relative;
             display: block;
             overflow: hidden;
-            border: 1px solid var(--border, #e5e5e5);
-            border-radius: var(--radius-sm, 4px);
-            background: var(--background-secondary, #f2f2f2);
+            border-radius: 12px;
+            background-color: #111111;
+            box-shadow:
+                0px 0px 0px 0.5px rgba(255, 255, 255, 0.08),
+                0px 4px 16px rgba(0, 0, 0, 0.4);
+            text-decoration: none;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .book:is(:hover, :focus-visible) {
+            transform: translateY(-2px);
+            box-shadow:
+                0px 0px 0px 1px rgba(255, 255, 255, 0.15),
+                0px 8px 24px rgba(0, 0, 0, 0.5);
         }
         .book img {
             display: block;
             width: 100%;
             aspect-ratio: 2 / 3;
             object-fit: cover;
-            transition: transform 0.25s ease;
+            background-color: #1a1a1a;
         }
         .overlay {
             position: absolute;
@@ -350,48 +394,50 @@ const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
             align-items: center;
             justify-content: center;
             gap: 0.35rem;
-            padding: var(--spacing-04, 1rem);
+            padding: var(--spacing-04);
             text-align: center;
             color: #fff;
-            background: rgba(10, 20, 40, 0.75);
+            background: rgba(0, 0, 0, 0.82);
             opacity: 0;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.15s ease;
         }
         .book:hover .overlay,
         .book:focus-visible .overlay {
             opacity: 1;
         }
-        .book:hover img {
-            transform: scale(1.04);
-        }
         .overlay-title {
-            font-size: 1.1rem;
-            font-weight: 700;
+            font-family: "ROM-Bold", var(--system-ui);
+            font-size: 1rem;
             line-height: 1.4;
+            color: #f0f0f0;
         }
         .overlay-author {
-            font-size: 0.85rem;
-            opacity: 0.85;
+            font-family: var(--monospace);
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
         }
         .cta {
-            margin-top: var(--spacing-03, 0.75rem);
-            padding: 0.55rem 1.4rem;
-            border-radius: 999px;
-            font-size: 0.9rem;
-            background: var(--link, #0a5);
-            color: var(--content-on-color, #fff);
+            margin-top: var(--spacing-03);
+            padding: 2px 8px;
+            font-family: var(--monospace);
+            font-size: 11px;
+            line-height: 1.5;
+            border-radius: 4px;
+            background: rgba(255, 80, 0, 0.2);
+            color: #ff7a40;
+            border: 0.5px solid rgba(255, 80, 0, 0.3);
         }
         /* No hover on touch: show the title as a bottom strip instead. */
         @media (hover: none) {
             .overlay {
                 inset: auto 0 0 0;
                 opacity: 1;
-                padding: var(--spacing-03, 0.75rem);
-                background: linear-gradient(transparent, rgba(10, 20, 40, 0.9));
+                padding: var(--spacing-03);
+                background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
                 justify-content: flex-end;
             }
             .overlay-title {
-                font-size: 0.95rem;
+                font-size: 0.9rem;
             }
             .overlay-author,
             .cta {
@@ -401,8 +447,10 @@ const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
 
         .empty {
             text-align: center;
-            color: var(--content-secondary, #666);
-            padding: var(--spacing-08, 2rem) 0;
+            font-family: var(--monospace);
+            font-size: var(--desktop-caption);
+            color: var(--content-secondary);
+            padding: var(--spacing-08) 0;
         }
         .visually-hidden {
             position: absolute;
@@ -422,6 +470,11 @@ const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
             }
             .grid {
                 grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+        }
+        @media (max-width: 30rem) {
+            .page {
+                padding: var(--spacing-06) var(--spacing-05) var(--spacing-09);
             }
         }
     </style>

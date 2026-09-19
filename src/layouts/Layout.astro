@@ -1,5 +1,6 @@
 ---
 import "@new-ui/foundations";
+import books from "../data/books.json";
 
 export interface Props {
     pageTitle: string;
@@ -9,89 +10,513 @@ export interface Props {
 }
 
 const { pageTitle, pageDescription, canonicalUrl, ogImage } = Astro.props;
+
+const headerDate = new Date().toLocaleDateString("ar-SA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+});
+const headerDateISO = new Date().toISOString().split("T")[0];
+
+// The ticker mirrors elhellal's "جديد" strip, fed with the most recently added books.
+const ticker = books.slice(-12).reverse();
 ---
 
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-new-ui-theme="dark">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preload" href="/woffs/ROM-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/woffs/ROM-Bold.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/woffs/ROM-Mono.woff2" as="font" type="font/woff2" crossorigin />
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
     {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDescription} />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ar_AR" />
     {ogImage && <meta property="og:image" content={ogImage} />}
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="twitter:site" content="@abdou_hll" />
+    <!-- Google AdSense (same publisher account as elhellal.com) -->
+    <script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3610150616518651"
+        crossorigin="anonymous"></script>
 </head>
 <body>
-    <header class="site-header">
-        <a href="/" class="brand">
-            <span class="brand-name">ملخصات الهلال</span>
-            <span class="brand-tagline">أهم الأفكار من أفضل الكتب العربية، في دقائق</span>
-        </a>
-        <a class="back-link" href="https://elhellal.com/">elhellal.com ←</a>
+    <a href="#main-content" class="skip-link">التخطي إلى المحتوى الرئيسي</a>
+
+    <header class="site-header" aria-label="رأس الصفحة">
+        <div class="site-header-inner">
+            <div class="site-header-top">
+                <time class="header-date" datetime={headerDateISO}>{headerDate}</time>
+
+                <div class="header-brand">
+                    <a href="/" class="brand-link" aria-label="الصفحة الرئيسية">
+                        <img src="/xarticles.svg" width="44" height="44" alt="" aria-hidden="true" />
+                        <span class="brand-name">ملخصات الهلال</span>
+                    </a>
+                    <p class="brand-tagline">أهم الأفكار من أفضل الكتب العربية، في دقائق</p>
+                </div>
+
+                <div class="header-actions">
+                    <div class="social-links">
+                        <a href="https://www.pinterest.com/elhellalcom/" class="social-link" aria-label="بينترست" target="_blank" rel="noopener noreferrer">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                                <path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.03-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.222-.174.269-.402.163-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12 0-6.628-5.373-12-12-12z"/>
+                            </svg>
+                        </a>
+                        <a href="https://www.tiktok.com/@elhellal" class="social-link" aria-label="تيك توك" target="_blank" rel="noopener noreferrer">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                                <path d="M16.6 5.82c-1.007-.98-1.671-2.152-1.913-3.53H12.35v13.75c0 1.94-1.578 3.517-3.517 3.517a3.52 3.52 0 0 1-3.518-3.517 3.52 3.52 0 0 1 3.518-3.517c.35 0 .687.052 1.006.148V9.315a6.156 6.156 0 0 0-1.006-.083C5.128 9.232 2 12.36 2 16.164 2 19.967 5.128 23.1 8.833 23.1c3.704 0 6.833-3.132 6.833-6.936V9.398a9.128 9.128 0 0 0 5.334 1.712V8.363a5.98 5.98 0 0 1-4.4-2.543z"/>
+                            </svg>
+                        </a>
+                    </div>
+                    <a href="https://elhellal.com/" class="header-link">
+                        <span class="header-link-text">المقالات</span>
+                        <span aria-hidden="true">↖</span>
+                    </a>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <slot />
+    <div class="news-ticker" aria-label="آخر الإضافات">
+        <span class="ticker-label">
+            <span class="ticker-dot" aria-hidden="true"></span>
+            جديد
+        </span>
+        <div class="ticker-viewport">
+            <ul class="ticker-track" id="newsTickerTrack">
+                {[...ticker, ...ticker].map((b, i) => (
+                    <li class="ticker-item" aria-hidden={i >= ticker.length ? "true" : undefined}>
+                        <a href={`/${b.slug}/`} tabindex={i >= ticker.length ? -1 : undefined}>{b.title}</a>
+                    </li>
+                ))}
+            </ul>
+        </div>
+        <button type="button" class="ticker-toggle" id="newsTickerToggle" aria-label="إيقاف الشريط المتحرك" aria-pressed="false">
+            <svg class="icon-pause" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256" fill="currentColor">
+                <path d="M216,48H164a20,20,0,0,0-20,20V188a20,20,0,0,0,20,20h52a20,20,0,0,0,20-20V68A20,20,0,0,0,216,48ZM92,48H40A20,20,0,0,0,20,68V188a20,20,0,0,0,20,20H92a20,20,0,0,0,20-20V68A20,20,0,0,0,92,48Z"/>
+            </svg>
+            <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="display:none">
+                <path d="M223.75,109.68,84.75,29.68a15.91,15.91,0,0,0-16,0A16,16,0,0,0,60.5,43.68V203.68a16,16,0,0,0,24.25,13.7l139-80a16,16,0,0,0,0-27.72Z"/>
+            </svg>
+        </button>
+    </div>
 
-    <footer class="site-footer">
-        <p>جزء من شبكة <a href="https://elhellal.com/">الهلال</a> — دليل المقالات والاقتباسات العربية.</p>
+    <div id="main-content"><slot /></div>
+
+    <footer class="footer" aria-label="Site footer">
+        <nav class="footer-nav" aria-label="تذييل الصفحة">
+            <a href="/" class="nu-u-link--subtle">الرئيسية</a>
+            <span class="footer-separator" aria-hidden="true">·</span>
+            <a href="https://elhellal.com/" class="nu-u-link--subtle">المقالات</a>
+            <span class="footer-separator" aria-hidden="true">·</span>
+            <a href="https://elhellal.com/quotes/" class="nu-u-link--subtle">الاقتباسات</a>
+            <span class="footer-separator" aria-hidden="true">·</span>
+            <a href="https://elhellal.com/authors/" class="nu-u-link--subtle">الكتّاب</a>
+            <span class="footer-separator" aria-hidden="true">·</span>
+            <a href="/sitemap-index.xml" class="nu-u-link--subtle">خريطة الموقع</a>
+        </nav>
+        <p class="footer-copy">
+            ABDERAHMANE HELLAL 2026 ©
+            <a href="https://elhellal.com/" class="nu-u-link--subtle" target="_blank" rel="noopener noreferrer">@abdou_hll</a>
+        </p>
     </footer>
 
-    <style>
-        :root {
-            color-scheme: light dark;
-        }
-        body {
-            margin: 0;
-            font-family: var(--body-copy, system-ui, sans-serif);
-            background: var(--background, #fff);
-            color: var(--content-primary, #111);
-        }
-        .site-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: var(--spacing-04, 1rem);
-            padding: var(--spacing-05, 1.25rem) var(--spacing-06, 1.5rem);
-            border-bottom: 1px solid var(--border, #e5e5e5);
-            flex-wrap: wrap;
-        }
-        .brand {
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .brand-name {
-            font-family: "ROM-Bold", var(--system-ui, system-ui);
-            font-size: 1.25rem;
-        }
-        .brand-tagline {
-            font-size: 0.85rem;
-            color: var(--content-secondary, #666);
-        }
-        .back-link {
-            font-size: 0.85rem;
-            color: var(--content-secondary, #666);
-            text-decoration: none;
-        }
-        .back-link:hover {
-            color: var(--accent, #0a5);
-        }
-        .site-footer {
-            text-align: center;
-            padding: var(--spacing-08, 2rem) var(--spacing-05, 1.25rem);
-            color: var(--content-secondary, #666);
-            font-size: 0.85rem;
-        }
-        .site-footer a {
-            color: inherit;
-        }
-    </style>
+    <script is:inline>
+        (function () {
+            const toggle = document.getElementById("newsTickerToggle");
+            const track = document.getElementById("newsTickerTrack");
+            if (!toggle || !track) return;
+            toggle.addEventListener("click", () => {
+                const paused = track.classList.toggle("is-paused");
+                toggle.setAttribute("aria-pressed", String(paused));
+                toggle.setAttribute("aria-label", paused ? "تشغيل الشريط المتحرك" : "إيقاف الشريط المتحرك");
+                toggle.querySelector(".icon-pause").style.display = paused ? "none" : "";
+                toggle.querySelector(".icon-play").style.display = paused ? "" : "none";
+            });
+        })();
+    </script>
+    <script is:inline>
+        // Lazy-fill ad slots as they near the viewport. adsbygoogle.push({}) fills the first
+        // unprocessed <ins> in document order, so push once per unrequested slot up to the visible one.
+        (function () {
+            var slots = Array.prototype.slice.call(document.querySelectorAll("ins.adsbygoogle"));
+            if (!slots.length) return;
+            function request(target) {
+                var last = slots.indexOf(target);
+                for (var i = 0; i <= last; i++) {
+                    var ins = slots[i];
+                    if (ins.getAttribute("data-adsbygoogle-status") || ins.dataset.adRequested) continue;
+                    ins.dataset.adRequested = "1";
+                    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+                }
+            }
+            if (!("IntersectionObserver" in window)) return slots.forEach(request);
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (en) {
+                    if (!en.isIntersecting) return;
+                    io.unobserve(en.target);
+                    request(en.target);
+                });
+            }, { rootMargin: "300px 0px" });
+            slots.forEach(function (s) { io.observe(s); });
+        })();
+    </script>
 </body>
 </html>
+
+<style is:global>
+    @font-face {
+        font-family: "ROM-Regular";
+        src: url("/woffs/ROM-Regular.woff2") format("woff2");
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+    }
+    @font-face {
+        font-family: "ROM-Bold";
+        src: url("/woffs/ROM-Bold.woff2") format("woff2");
+        font-weight: bold;
+        font-style: normal;
+        font-display: swap;
+    }
+    @font-face {
+        font-family: "ROM-Mono";
+        src: url("/woffs/ROM-Mono.woff2") format("woff2");
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+    }
+    :root {
+        --accent: var(--link);
+        --body-copy: "ROM-Regular", var(--system-ui);
+        --monospace: "ROM-Mono", var(--monospace-code);
+        --body-strong: "ROM-Bold", var(--system-ui);
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    html[data-new-ui-theme*="dark"] {
+        --link: DarkOrange;
+        --link-hover: DarkOrange;
+        --link-visited: DarkOrange;
+        --border-focus: DarkOrange;
+    }
+    html {
+        font-family: var(--body-copy);
+        background-color: var(--background-high-contrast);
+    }
+    body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        overflow-x: hidden;
+        font-family: var(--body-copy);
+        color: var(--content-primary);
+        background-color: var(--background-high-contrast);
+    }
+    a {
+        color: inherit;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        font-family: "ROM-Bold", var(--system-ui);
+        font-weight: 500;
+    }
+    p {
+        margin-top: var(--spacing-00);
+    }
+    .nu-u-link--subtle {
+        color: var(--content-secondary) !important;
+    }
+
+    .skip-link {
+        position: absolute;
+        top: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: var(--spacing-01) var(--spacing-02);
+        background-color: var(--background-high-contrast);
+        color: var(--content-secondary-alt);
+        text-decoration: none;
+        font-weight: 600;
+        z-index: 9999999;
+        transition: top 0.2s ease;
+        font-size: var(--desktop-caption);
+        line-height: var(--lh-desktop-caption);
+    }
+    .skip-link:focus {
+        top: var(--spacing-03);
+    }
+
+    /* Header — same three-column layout as elhellal.com */
+    .site-header {
+        border-bottom: 0.5px solid var(--border-muted);
+    }
+    .site-header-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: var(--spacing-08) var(--spacing-09) 0;
+    }
+    .site-header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--spacing-04);
+        padding-bottom: var(--spacing-06);
+    }
+    .header-date {
+        font-family: var(--monospace);
+        font-size: var(--desktop-caption);
+        line-height: var(--lh-desktop-caption);
+        color: var(--content-secondary);
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .header-brand {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .brand-link {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-03);
+        text-decoration: none;
+        color: inherit;
+    }
+    .brand-name {
+        font-family: "ROM-Bold", var(--system-ui);
+        font-size: 1.75rem;
+        line-height: 1.2;
+        color: var(--content-primary);
+    }
+    .brand-tagline {
+        font-family: var(--monospace);
+        font-size: var(--desktop-caption);
+        line-height: var(--lh-desktop-caption);
+        color: var(--content-secondary);
+        margin: var(--spacing-01) 0 0 0;
+    }
+    .header-actions {
+        flex: 1;
+        display: flex;
+        gap: var(--spacing-03);
+        align-items: center;
+        justify-content: flex-end;
+    }
+    .social-links {
+        display: flex;
+        gap: var(--spacing-02);
+        align-items: center;
+        margin-right: var(--spacing-03);
+    }
+    .social-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--spacing-08);
+        height: var(--spacing-08);
+        color: var(--content-secondary);
+        transition: color 0.2s ease, transform 0.1s ease;
+    }
+    .social-link:hover {
+        color: var(--accent);
+    }
+    .social-link:active {
+        transform: scale(0.9);
+    }
+    .social-link:focus,
+    .header-link:focus {
+        outline: 1px solid var(--button-primary);
+        outline-offset: 2px;
+    }
+    .header-link {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-02);
+        padding: var(--spacing-02) var(--spacing-05);
+        border: 0.5px solid var(--border-muted);
+        background-color: var(--background);
+        color: var(--content-secondary);
+        text-decoration: none;
+        font-size: var(--desktop-body-sm);
+        line-height: var(--lh-desktop-body-sm);
+        outline: none;
+        transition: transform 0.2s ease;
+    }
+    .header-link:hover {
+        color: var(--accent);
+    }
+    .header-link:active {
+        transform: scale(0.97);
+    }
+
+    /* News ticker */
+    .news-ticker {
+        display: flex;
+        align-items: stretch;
+        border-bottom: 0.5px solid var(--border-muted);
+        background: var(--background-secondary);
+    }
+    .ticker-label {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 var(--spacing-05);
+        font-family: var(--monospace);
+        font-size: var(--desktop-caption);
+        font-weight: 700;
+        color: DarkOrange;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        white-space: nowrap;
+    }
+    .ticker-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: DarkOrange;
+        animation: ticker-pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes ticker-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+    .ticker-viewport {
+        flex: 1;
+        overflow: hidden;
+        min-width: 0;
+        -webkit-mask-image: linear-gradient(to left, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+        mask-image: linear-gradient(to left, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+    }
+    .ticker-track {
+        display: flex;
+        align-items: center;
+        direction: ltr;
+        width: max-content;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        animation: ticker-scroll 40s linear infinite;
+    }
+    .news-ticker:hover .ticker-track,
+    .ticker-track.is-paused {
+        animation-play-state: paused;
+    }
+    @keyframes ticker-scroll {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
+    .ticker-item {
+        flex-shrink: 0;
+        padding: var(--spacing-03) var(--spacing-05);
+        border-left: 0.5px solid var(--border-muted);
+    }
+    .ticker-item a {
+        font-size: var(--desktop-body-sm);
+        color: var(--content-secondary);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .ticker-item a:hover {
+        color: var(--content-primary);
+    }
+    .ticker-toggle {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        border: none;
+        border-right: 0.5px solid var(--border-muted);
+        background: none;
+        color: var(--content-secondary);
+        cursor: pointer;
+    }
+    .ticker-toggle:hover {
+        color: var(--content-primary);
+    }
+    .ticker-toggle:focus {
+        outline: 1px solid var(--button-primary);
+        outline-offset: -2px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .ticker-track {
+            animation-play-state: paused;
+        }
+    }
+
+    /* Footer */
+    .footer {
+        padding: var(--spacing-10) 0;
+        text-align: center;
+    }
+    .footer-nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: var(--spacing-01);
+        margin-bottom: var(--spacing-03);
+    }
+    .footer-nav a {
+        font-family: var(--monospace);
+        font-size: var(--desktop-caption);
+        line-height: var(--lh-desktop-caption);
+        text-decoration: none;
+        transition: color 0.15s ease;
+    }
+    .footer-nav a:hover {
+        color: var(--accent) !important;
+    }
+    .footer-copy {
+        font-family: var(--monospace);
+        font-size: var(--desktop-caption);
+        line-height: var(--lh-desktop-caption);
+        color: var(--content-secondary);
+        margin: 0;
+    }
+    .footer-separator {
+        color: var(--content-secondary);
+        font-family: var(--monospace);
+        font-size: var(--desktop-caption);
+        opacity: 0.4;
+    }
+
+    @media (max-width: 48rem) {
+        .header-date,
+        .header-link-text {
+            display: none;
+        }
+        .header-actions {
+            flex: 0 0 auto;
+        }
+        .brand-name {
+            font-size: 1.35rem;
+        }
+    }
+    @media (max-width: 30rem) {
+        .site-header-inner {
+            padding: var(--spacing-05) var(--spacing-05) 0;
+        }
+        .ticker-label span:not(.ticker-dot) {
+            display: none;
+        }
+    }
+</style>
