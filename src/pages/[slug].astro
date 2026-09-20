@@ -20,6 +20,24 @@ const { book, Content, minutes } = Astro.props;
 
 const amazonSearch = `https://www.amazon.sa/s?k=${encodeURIComponent(book.title + " " + book.author)}`;
 const goodreadsSearch = `https://www.goodreads.com/search?q=${encodeURIComponent(book.title + " " + book.author)}`;
+const topicsOf = (genre: string) => genre.split(/\s*\/\s*/).map((g) => (g.startsWith("رواية") ? "رواية" : g));
+const bookTopics = topicsOf(book.genre);
+// Same author first, then same exact genre, then any shared topic; index order keeps ties stable.
+const related = books
+    .filter((b) => b.slug !== book.slug)
+    .map((b) => {
+        const sameAuthor = b.authorSlug === book.authorSlug;
+        const sameGenre = b.genre === book.genre;
+        const sharedTopic = topicsOf(b.genre).find((t) => bookTopics.includes(t));
+        return {
+            b,
+            score: (sameAuthor ? 4 : 0) + (sameGenre ? 2 : 0) + (sharedTopic ? 1 : 0),
+            reason: sameAuthor ? "من نفس المؤلف" : sameGenre ? b.genre : sharedTopic ?? "قد يعجبك",
+            sameAuthor,
+        };
+    })
+    .sort((x, y) => y.score - x.score)
+    .slice(0, 4);
 const quotesUrl = book.quotesSlug ? `https://elhellal.com/quotes/book/${encodeURIComponent(book.quotesSlug)}/` : null;
 ---
 
@@ -44,6 +62,7 @@ const quotesUrl = book.quotesSlug ? `https://elhellal.com/quotes/book/${encodeUR
                     <a href={goodreadsSearch} target="_blank" rel="nofollow noopener">صفحة Goodreads</a>
                     {quotesUrl && <a href={quotesUrl}>اقتباسات من الكتاب</a>}
                 </div>
+                <AdUnit slot="2951250905" minHeight={250} className="side-ad" />
             </aside>
 
             <div class="content-col">
@@ -79,10 +98,32 @@ const quotesUrl = book.quotesSlug ? `https://elhellal.com/quotes/book/${encodeUR
                     <h2>لمن هذا الكتاب</h2>
                     <p>{book.whoShouldRead}</p>
                 </section>
-
-                <AdUnit slot="2951250905" minHeight={250} />
             </div>
         </article>
+
+        {related.length > 0 && (
+            <section class="related" aria-labelledby="related-title">
+                <header class="related-head">
+                    <h2 id="related-title">كتب ذات صلة</h2>
+                    <a href="/" class="related-all">كل الكتب ←</a>
+                </header>
+                <ul role="list" class="related-grid">
+                    {related.map(({ b, reason, sameAuthor }) => (
+                        <li>
+                            <a href={`/${b.slug}/`} class="related-card">
+                                <img src={b.cover} alt={b.title} loading="lazy" />
+                                <span class="related-body">
+                                    <span class:list={["related-tag", { "is-author": sameAuthor }]}>{reason}</span>
+                                    <span class="related-title">{b.title}</span>
+                                    <span class="related-author">{b.author}{b.year ? ` · ${b.year}` : ""}</span>
+                                    <span class="related-cta">اقرأ الملخص ←</span>
+                                </span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+        )}
     </main>
 
     <style>
@@ -115,6 +156,17 @@ const quotesUrl = book.quotesSlug ? `https://elhellal.com/quotes/book/${encodeUR
         @media (max-width: 640px) {
             .book { grid-template-columns: 1fr; }
             .page { padding: var(--spacing-06) var(--spacing-05) var(--spacing-09); }
+        }
+        .cover-col {
+            align-self: start;
+            position: sticky;
+            top: var(--spacing-09);
+        }
+        @media (max-width: 640px) {
+            .cover-col { position: static; }
+        }
+        .cover-col :global(.side-ad) {
+            margin-top: var(--spacing-05);
         }
         .cover {
             width: 100%;
@@ -226,6 +278,118 @@ const quotesUrl = book.quotesSlug ? `https://elhellal.com/quotes/book/${encodeUR
             color: var(--content-secondary);
         }
         .prose :global(a) {
+            color: var(--accent);
+        }
+        .related {
+            margin-top: var(--spacing-09);
+            padding-top: var(--spacing-07);
+            border-top: 0.5px solid var(--border-muted);
+        }
+        .related-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-05);
+        }
+        .related-head h2 {
+            margin: 0;
+            font-size: 1.35rem;
+            color: var(--content-primary);
+        }
+        .related-all {
+            font-family: var(--monospace);
+            font-size: var(--desktop-caption);
+            color: var(--content-secondary);
+            text-decoration: none;
+        }
+        .related-all:hover {
+            color: var(--accent);
+        }
+        .related-grid {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-05);
+        }
+        @media (max-width: 800px) {
+            .related-grid { grid-template-columns: 1fr; }
+        }
+        /* Same card shell as the homepage: #111, 12px radius, hairline ring. */
+        .related-card {
+            display: flex;
+            gap: var(--spacing-04);
+            height: 100%;
+            padding: var(--spacing-04);
+            border-radius: 12px;
+            background-color: #111111;
+            text-decoration: none;
+            box-shadow:
+                0px 0px 0px 0.5px rgba(255, 255, 255, 0.08),
+                0px 4px 16px rgba(0, 0, 0, 0.4);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .related-card:is(:hover, :focus-visible) {
+            transform: translateY(-2px);
+            box-shadow:
+                0px 0px 0px 1px rgba(255, 255, 255, 0.15),
+                0px 8px 24px rgba(0, 0, 0, 0.5);
+        }
+        .related-card:focus-visible {
+            outline: 1px solid var(--button-primary);
+            outline-offset: 2px;
+        }
+        .related-card img {
+            flex: none;
+            width: 88px;
+            aspect-ratio: 2 / 3;
+            object-fit: cover;
+            align-self: flex-start;
+            border-radius: 6px;
+            background-color: #1a1a1a;
+            box-shadow: 0px 0px 0px 0.5px rgba(255, 255, 255, 0.1);
+        }
+        .related-body {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+            min-width: 0;
+        }
+        .related-tag {
+            padding: 1px 8px;
+            font-family: var(--monospace);
+            font-size: 11px;
+            line-height: 1.6;
+            border-radius: 4px;
+            color: var(--content-secondary);
+            border: 0.5px solid var(--border-muted);
+        }
+        .related-tag.is-author {
+            background: rgba(255, 80, 0, 0.2);
+            color: #ff7a40;
+            border-color: rgba(255, 80, 0, 0.3);
+        }
+        .related-title {
+            font-family: "ROM-Bold", var(--system-ui);
+            font-size: 1.05rem;
+            line-height: 1.5;
+            color: var(--content-primary);
+        }
+        .related-card:hover .related-title {
+            color: var(--accent);
+        }
+        .related-author {
+            font-family: var(--monospace);
+            font-size: 11px;
+            color: var(--content-secondary);
+        }
+        .related-cta {
+            margin-top: auto;
+            padding-top: var(--spacing-02);
+            font-family: var(--monospace);
+            font-size: 11px;
             color: var(--accent);
         }
     </style>
