@@ -7,9 +7,11 @@ export interface Props {
     pageDescription: string;
     canonicalUrl?: string;
     ogImage?: string;
+    /** schema.org structured data for this page */
+    jsonLd?: object | object[];
 }
 
-const { pageTitle, pageDescription, canonicalUrl, ogImage } = Astro.props;
+const { pageTitle, pageDescription, canonicalUrl, ogImage, jsonLd } = Astro.props;
 
 const headerDate = new Date().toLocaleDateString("ar-SA", {
     weekday: "long",
@@ -41,7 +43,9 @@ const ticker = books.slice(-12).reverse();
     <meta property="og:description" content={pageDescription} />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ar_AR" />
+    {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
     {ogImage && <meta property="og:image" content={ogImage} />}
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@abdou_hll" />
     <!-- Google AdSense (same publisher account as elhellal.com) -->
