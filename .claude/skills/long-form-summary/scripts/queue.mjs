@@ -10,7 +10,7 @@ const ROOT = path.resolve(new URL(".", import.meta.url).pathname, "../../../..")
 const MIN = 1000, MAX = 1500;
 const booksPath = path.join(ROOT, "src/data/books.json");
 const sumDir = path.join(ROOT, "src/content/summaries");
-const quotesPath = path.resolve(ROOT, "../elhellal/src/data/quotes.json");
+const quotesPath = path.resolve(ROOT, "../elhellal-quotes/src/data/quotes.json");
 
 const books = JSON.parse(fs.readFileSync(booksPath, "utf8"));
 const words = (t) => t.split(/\s+/).filter(Boolean).length; // same counting as src/pages/[slug].astro

@@ -13,7 +13,7 @@ Argument: a number = how many books to write (default 5); a title/slug = just th
 ## Order of work
 
 1. **Stage 1 — books already in the catalog** (`src/data/books.json`) that lack a 1000+ word summary. This includes existing short summaries (300–800 words): expand them, keeping what is correct.
-2. **Stage 2 — books from the elhellal quotes data** (`../elhellal/src/data/quotes.json`) that are not in the catalog yet. Add the catalog entry *and* the long-form file.
+2. **Stage 2 — books from the elhellal quotes data** (`../elhellal-quotes/src/data/quotes.json`) that are not in the catalog yet. Add the catalog entry *and* the long-form file.
 
 Within each stage, most-quoted (total likes) first. Don't reorder by what's easiest.
 
