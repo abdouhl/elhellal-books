@@ -1,0 +1,102 @@
+---
+// "مقالات على الهلال": elhellal.com articles that name this page's person or
+// book. elhellal's build writes https://elhellal.com/sister-links.json (page
+// URL → articles, see src/lib/sister-sites.ts there); this reads it once per
+// build. Offline or before elhellal has deployed it, the section is skipped.
+
+interface Props {
+    /** This page's canonical URL */
+    url: string;
+    heading?: string;
+}
+
+type Backlinks = Record<string, Array<{ title: string; url: string; author: string }>>;
+
+let cache: Promise<Map<string, Backlinks[string]>> | undefined;
+
+function loadBacklinks() {
+    // SISTER_LINKS_URL points a local build at another copy (e.g. elhellal's `wrangler dev`).
+    const source = process.env.SISTER_LINKS_URL || "https://elhellal.com/sister-links.json";
+    cache ??= fetch(source, { signal: AbortSignal.timeout(15_000) })
+        .then((res) => (res.ok ? res.json() : { pages: {} }))
+        .then((data: { pages?: Backlinks }) => {
+            // Keys may be percent-encoded or not; compare decoded.
+            const byUrl = new Map<string, Backlinks[string]>();
+            for (const [key, list] of Object.entries(data.pages ?? {})) byUrl.set(decodeURI(key), list);
+            return byUrl;
+        })
+        .catch(() => new Map());
+    return cache;
+}
+
+const { url, heading = "مقالات عنه على الهلال" } = Astro.props;
+const articles = ((await loadBacklinks()).get(decodeURI(url)) ?? []).slice(0, 6);
+---
+
+{articles.length > 0 && (
+    <section class="elhellal-articles" aria-labelledby="elhellal-articles-title">
+        <h2 id="elhellal-articles-title">{heading}</h2>
+        <ul role="list">
+            {articles.map((a) => (
+                <li>
+                    <a href={a.url}>
+                        <span class="ea-title">{a.title}</span>
+                        <span class="ea-author">{a.author}</span>
+                    </a>
+                </li>
+            ))}
+        </ul>
+        <a class="ea-more" href="https://elhellal.com/">المزيد من المقالات العربية المنتقاة على الهلال ←</a>
+    </section>
+)}
+
+<style>
+    .elhellal-articles {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 0.5px solid rgba(255, 255, 255, 0.12);
+    }
+    .elhellal-articles h2 {
+        margin: 0 0 1rem;
+        font-size: 1.35rem;
+    }
+    .elhellal-articles ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+    }
+    .elhellal-articles li a {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        height: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        background: #111111;
+        text-decoration: none;
+        box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 4px 16px rgba(0, 0, 0, 0.4);
+        transition: transform 0.15s ease;
+    }
+    .elhellal-articles li a:is(:hover, :focus-visible) {
+        transform: translateY(-2px);
+    }
+    .ea-title {
+        color: #f0f0f0;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+    .ea-author {
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 0.85rem;
+    }
+    .ea-more {
+        display: inline-block;
+        margin-top: 1rem;
+        color: DarkOrange;
+        font-size: 0.9rem;
+        text-decoration: none;
+    }
+</style>

@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import books from "../data/books.json";
 import AdUnit from "../components/AdUnit.astro";
+import ElhellalArticles from "../components/ElhellalArticles.astro";
 
 export function getStaticPaths() {
     // Long-form summaries live in src/content/summaries/<slug>.md; books without one fall back to the short entry.
@@ -125,6 +126,8 @@ const jsonLd = [
                 </section>
             </div>
         </article>
+
+        <ElhellalArticles url={pageUrl} heading={`مقالات على الهلال عن «${book.title}» و${book.author}`} />
 
         {related.length > 0 && (
             <section class="related" aria-labelledby="related-title">
