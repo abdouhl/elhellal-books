@@ -19,7 +19,7 @@ const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
 
 <Layout
     pageTitle="ملخصات كتب عربية | الهلال"
-    pageDescription="ملخصات موجزة لأهم الروايات والكتب العربية: الأفكار الرئيسية، لمن هذا الكتاب، واقتباساته الأشهر."
+    pageDescription="ملخصات عربية موجزة لأهم الروايات والكتب العالمية والعربية: الفكرة الرئيسية لكل كتاب، ولمن يناسب، وأشهر اقتباساته، مرتبة حسب الكاتب والموضوع."
     canonicalUrl="https://books.elhellal.com/"
 >
     <main class="page">
@@ -81,7 +81,7 @@ const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
                 </ul>
 
                 <p id="empty" class="empty" hidden>لا توجد نتائج مطابقة. جرّب كلمة أخرى أو اختر «كل الكتب».</p>
-                <AdUnit slot="2951250905" />
+                <AdUnit slot="2951250905" mobileMinHeight={280} />
             </section>
         </div>
     </main>
@@ -124,6 +124,9 @@ const topics = [...topicCounts].sort((a, b) => a[0].localeCompare(b[0], "ar"));
             items.forEach((li) => (li.hidden = !visible.has(li)));
 
             empty.hidden = matches.length > 0;
+            // No ad on a "no results" screen. A hidden slot never gets requested.
+            const indexAd = document.querySelector(".results .ad-unit");
+            if (indexAd) indexAd.style.display = matches.length ? "" : "none"; // .ad-unit sets display:flex, which beats [hidden]
             status.textContent = matches.length
                 ? `عرض من ${nf.format(start + 1)} - ${nf.format(start + visible.size)} من أصل ${nf.format(matches.length)} كتاب`
                 : "";

@@ -1,5 +1,6 @@
 ---
 import "@new-ui/foundations";
+import AdsLoader from "../components/AdsLoader.astro";
 import books from "../data/books.json";
 
 export interface Props {
@@ -29,6 +30,7 @@ const ticker = books.slice(-12).reverse();
 <html lang="ar" dir="rtl" data-new-ui-theme="dark">
 <head>
     <meta charset="UTF-8" />
+    <meta name="Petal-Search-site-verification" content="bc04993b60" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
@@ -58,11 +60,8 @@ const ticker = books.slice(-12).reverse();
         gtag("js", new Date());
         gtag("config", "G-MLVB12BM2C");
     </script>
-    <!-- Google AdSense (same publisher account as elhellal.com) -->
-    <script
-        async
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3610150616518651"
-        crossorigin="anonymous"></script>
+    <!-- Consent (Funding Choices) then AdSense, deferred until interaction or idle. -->
+    <AdsLoader />
 </head>
 <body>
     <a href="#main-content" class="skip-link">التخطي إلى المحتوى الرئيسي</a>
@@ -177,6 +176,9 @@ const ticker = books.slice(-12).reverse();
                 for (var i = 0; i <= last; i++) {
                     var ins = slots[i];
                     if (ins.getAttribute("data-adsbygoogle-status") || ins.dataset.adRequested) continue;
+                    // Hidden by CSS (mobile, no-ads page, empty search): push({}) would hand it this
+                    // request and leave the visible slot empty, so take it out of the queue.
+                    if (!ins.offsetParent) { ins.remove(); continue; }
                     ins.dataset.adRequested = "1";
                     try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
                 }
@@ -259,6 +261,15 @@ const ticker = books.slice(-12).reverse();
             });
         })();
     </script>
+    <style is:global>
+    /* Phones: list/footer links were 15-22px tall, under the 24px minimum tap target. */
+    @media (max-width: 48rem) {
+        .ticker-item a, .breadcrumb a, .nu-u-link--subtle, .related-all, .ea-more, .skip-link:focus {
+            display: inline-block;
+            padding-block: 5px;
+        }
+    }
+    </style>
 </body>
 </html>
 
@@ -601,6 +612,16 @@ const ticker = books.slice(-12).reverse();
     @media (max-width: 30rem) {
         .site-header-inner {
             padding: var(--spacing-05) var(--spacing-05) 0;
+        }
+        /* The brand column couldn't shrink, so its tagline pushed the header ~30px past
+           the screen and phones zoomed the whole page out. */
+        .header-brand {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .brand-tagline {
+            font-size: 0.7rem;
+            line-height: 1.5;
         }
         .ticker-label span:not(.ticker-dot) {
             display: none;

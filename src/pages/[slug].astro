@@ -82,13 +82,13 @@ const jsonLd = [
 
         <article class="book">
             <aside class="cover-col">
-                <img src={book.cover} alt={book.title} class="cover" />
+                <img src={book.cover} alt={book.title} class="cover" width="220" height="330" />
                 <div class="links">
                     <a href={amazonSearch} target="_blank" rel="nofollow sponsored noopener">اشترِ من أمازون</a>
                     <a href={goodreadsSearch} target="_blank" rel="nofollow noopener">صفحة Goodreads</a>
                     {quotesUrl && <a href={quotesUrl}>اقتباسات من الكتاب</a>}
                 </div>
-                <AdUnit slot="2951250905" minHeight={250} className="side-ad" />
+                <AdUnit slot="2951250905" minHeight={250} mobileMinHeight={280} className="side-ad" />
             </aside>
 
             <div class="content-col">
@@ -104,7 +104,10 @@ const jsonLd = [
                         <section class="prose">
                             <Content />
                         </section>
-                        <AdUnit slot="8525183818" format="fluid" layout="in-article" />
+                        {/* Wrapped: bare after <section> in this fragment, the component rendered nothing. */}
+                        <div>
+                            <AdUnit slot="8525183818" format="fluid" layout="in-article" className="article-ad" />
+                        </div>
                     </>
                 ) : (
                     <section>
@@ -196,8 +199,13 @@ const jsonLd = [
         .cover-col :global(.side-ad) {
             margin-top: var(--spacing-05);
         }
+        .content-col :global(.article-ad) {
+            margin-block: var(--spacing-06);
+        }
         .cover {
             width: 100%;
+            height: auto;
+            aspect-ratio: 2 / 3;
             border-radius: 12px;
             display: block;
             background-color: #111111;
@@ -420,5 +428,34 @@ const jsonLd = [
             font-size: 11px;
             color: var(--accent);
         }
-    </style>
+            /* Phones: title and summary first; the side ad moves below the content,
+           away from the buy links. Not display:none — the lazy loader would push
+           into a hidden <ins> and starve the next slot. */
+        @media (max-width: 640px) {
+            .book { display: flex; flex-direction: column; }
+            .cover-col { display: contents; }
+            .cover { order: 0; max-width: 132px; margin-inline: auto; }
+            .links { order: 1; flex-direction: row; flex-wrap: wrap; justify-content: center; }
+            .links a { flex: 1 1 30%; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+            .content-col { order: 2; }
+            .cover-col :global(.side-ad) { order: 3; margin-top: var(--spacing-07); }
+        }
+</style>
+
+<style is:global>
+    /* Mid-summary ad inserted by src/lib/rehype-mid-ad.mjs (outside AdUnit's scoped styles). */
+    .prose-ad {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-height: 250px;
+        margin-block: var(--spacing-07);
+    }
+    .prose-ad .ad-unit-label {
+        font-family: var(--monospace);
+        font-size: 11px;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.45);
+    }
+</style>
 </Layout>
