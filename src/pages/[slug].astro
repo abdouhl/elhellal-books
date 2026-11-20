@@ -41,6 +41,29 @@ const related = books
     .slice(0, 4);
 const quotesUrl = book.quotesSlug ? `https://quotes.elhellal.com/book/${encodeURIComponent(book.quotesSlug)}/` : null;
 const pageUrl = `https://books.elhellal.com/${book.slug}/`;
+/** Cuts to `max` characters at a word boundary, ending in "…". */
+const clampAtWord = (text: string, max: number) => {
+    if (text.length <= max) return text;
+    const cut = text.slice(0, max - 1);
+    const space = cut.lastIndexOf(" ");
+    return `${(space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[،,.:;!؟?\-–—|"«\s]+$/, "")}…`;
+};
+// Bing wants titles within 70 characters and descriptions of about 150: shorten the
+// title part (author first), and pad short summaries with what the page holds.
+const titleCore = (() => {
+    const max = 70 - " | الهلال".length;
+    const full = `ملخص كتاب ${book.title} - ${book.author}`;
+    if (full.length <= max) return full;
+    const noAuthor = `ملخص كتاب ${book.title}`;
+    return noAuthor.length <= max ? noAuthor : clampAtWord(noAuthor, max);
+})();
+const pageTitle = `${titleCore} | الهلال`;
+const pageDescription = clampAtWord(
+    book.summary.length >= 120
+        ? book.summary
+        : `${book.summary.replace(/[.،\s]+$/, "")}. ملخص عربي لكتاب «${book.title}» لـ${book.author}: أهم أفكاره${quotesUrl ? "، ولمن يناسب، وأشهر اقتباساته" : " ولمن يناسب"}.`,
+    160,
+);
 const jsonLd = [
     {
         "@context": "https://schema.org",
@@ -67,8 +90,8 @@ const jsonLd = [
 ---
 
 <Layout
-    pageTitle={`ملخص كتاب ${book.title} - ${book.author} | الهلال`}
-    pageDescription={book.summary.slice(0, 155)}
+    pageTitle={pageTitle}
+    pageDescription={pageDescription}
     canonicalUrl={pageUrl}
     ogImage={book.cover}
     jsonLd={jsonLd}
